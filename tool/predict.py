@@ -50,7 +50,7 @@ class Evaluation:
     def precision(self):
         """
         :description: precision score TP / (TP + FP)
-            for classification model only
+            分类模型的精确率
         :return: precision
         """
 
@@ -63,7 +63,7 @@ class Evaluation:
     def recall(self):
         """
         :description: recall score TP / (TP + FN)
-            for classification model only
+            分类模型的召回率
         :return: recall
         """
 
@@ -76,7 +76,7 @@ class Evaluation:
     def accuracy(self):
         """
         :description: precision score (TP+TN)/(TP+TN+FP+FN)
-            for classification model only
+            分类模型的准确率
         :return: accuracy
         """
 
@@ -88,7 +88,7 @@ class Evaluation:
     def F1(self):
         """
         :description: F1 score 2 * precision * recall / (precision + recall)
-            for classification model only
+            分类模型的F1值
         :return: F1
         """
         return 2 * self.precision() * self.recall() / (self.precision() + self.recall())

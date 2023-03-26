@@ -5,14 +5,14 @@ class Preprocessing:
 
     def __init__(self, data):
         """
-        :param data: pd.DataFrame. datasets
+        :param data: pd.DataFrame. 要处理的数据集
         """
         self.data = data
 
     def minmax(self, *args):
         """
         :description: min-max normalization
-        :param args: pd.Series. the columns to be normalized
+        :param args: pd.Series. 要转换的列
         """
 
         for column in args:
@@ -23,8 +23,8 @@ class Preprocessing:
 
     def zscore(self, *args):
         """
-        :description: standard normalization
-        :param args: pd.Series. the columns to be normalized
+        :description: z-score normalization
+        :param args: pd.Series. 要转换的列
         """
 
         for column in args:
@@ -36,7 +36,7 @@ class Preprocessing:
     def maxabs(self, *args):
         """
         :description: max absolute normalization
-        :param args: pd.Series. the columns to be normalized
+        :param args: pd.Series. 要转换的列
         """
 
         for column in args:
@@ -47,14 +47,13 @@ class Preprocessing:
 
     def LabelEncoder(self, *args):
         """
-        :description: map string data to integer
-        :param args: pd.Series. the columns to be encoded
+        :description: label encoding
+        :param args: pd.Series. 要转换的列
         :return: None
         """
 
         for column in args:
 
-            # 数据类别
             type = np.unique(column)
 
             replace = dict(zip(type, range(len(type))))
@@ -64,13 +63,12 @@ class Preprocessing:
     def ZeroOneEncoder(self, *args):
         """
         :description: one-hot encoding
-        :param args: pd.Series.  the columns to be encoded
+        :param args: pd.Series.  要转换的列
         :return: None
         """
 
         for column in args:
 
-            # 数据类别
             type = np.unique(column)
             name = column.name
 
@@ -83,9 +81,9 @@ class Preprocessing:
 
     def split(self, frac=0.7, seed=None):
         """
-        :description: split data into training sets and test sets
-        :param frac: percentage of training sets in the whole data
-        :param seed: random seed for sampling data from the whole data (default: None)
+        :description: 划分训练集和测试集
+        :param frac: float. 训练集所占比例（默认为0.7）
+        :param seed: int. 随机种子（默认为None）
         :return: X_train, y_train, X_test, y_test
         """
 
