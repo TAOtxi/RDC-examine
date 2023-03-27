@@ -51,7 +51,7 @@ class Preprocessing:
         for column in columns:
             type = np.unique(self.data[:, column])
             for index, value in enumerate(type):
-                self.data[:, column] = np.where(self.data[:, column] == index, value, self.data[:, column])
+                self.data[:, column][self.data[:, column] == value] = index
 
 
     def ZeroOneEncoder(self, columns):
@@ -79,10 +79,12 @@ class Preprocessing:
         :param seed: int. 随机种子（默认为None）
         :return: X_train, y_train, X_test, y_test
         """
+
+        n_samples = self.data.shape[0]
         np.random.seed(seed)
-        random_list = np.random.randint(0, self.data.shape[0], int(self.data.shape[0] * (1 - frac)))
-        test = self.data[random_list]
-        train = np.delete(self.data, random_list, axis=0)
+        random_index = np.random.permutation(range(n_samples))
+        train = self.data[random_index[:int(n_samples * frac)]].astype(np.float64)
+        test = self.data[random_index[int(n_samples * frac):]].astype(np.float64)
 
         X_train = train[:, :-1]
         y_train = train[:, -1].reshape(-1, 1)
