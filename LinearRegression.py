@@ -17,34 +17,34 @@ class MiniBGD:
         self.iter = maxiter     # 迭代次数
         self.loss = []          # 每次迭代后的代价组成的列表
         self.theta = None       # 模型参数
-        self.ran_num = None     # 随机抽取的样本数
+        self.batch_size = None  # 随机抽取的样本数
 
     def lossfunc(self, X, y):
         """
-        :param X: 特征矩阵
-        :param y: 标签
+        :param X: np.ndarray 特征矩阵. shape = (batch_size, n_features)
+        :param y: np.ndarray 标签. shape = (batch_size, 1)
         :return: 损失函数的梯度
         """
 
         diff = X @ self.theta - y
-        grad = (X.T @ diff + self.beta * self.theta) / self.ran_num
-        self.loss.append((diff.T @ diff + self.theta.T @ self.theta) / self.ran_num)
+        grad = (X.T @ diff + self.beta * self.theta) / self.batch_size
+        self.loss.append((diff.T @ diff + self.theta.T @ self.theta)[0][0] / self.batch_size)
         return grad
 
-    def fit(self, X, y, ran_num=None):
+    def fit(self, X, y, batch_size=None):
         """
-        :param X: 特征矩阵
-        :param y: 标签
-        :param ran_num: 随机抽取的样本数（默认为全部）
+        :param X: np.ndarray 特征矩阵. shape = (n_samples, n_features)
+        :param y: np.ndarray 标签. shape = (n_samples, 1)
+        :param batch_size: int 随机抽取的样本数（默认为全部）
         :return: None
         """
 
-        if ran_num is None:
-            self.ran_num = X.shape[0]
+        if batch_size is None:
+            self.batch_size = X.shape[0]
         else:
-            self.ran_num = ran_num
+            self.batch_size = batch_size
 
-        X = np.concatenate((np.ones((X.shape[0], 1)), X), axis=1)
+        X = np.insert(X, 0, 1, axis=1)
         self.theta = np.ones((X.shape[1], 1))
         X_random, y_random = self.random(X, y)
         grad = self.lossfunc(X_random, y_random)
@@ -60,17 +60,17 @@ class MiniBGD:
 
     def random(self, X, y):
         """
-        :param X: 特征矩阵
-        :param y: 标签
+        :param X: np.ndarray 特征矩阵. shape = (n_samples, n_features)
+        :param y: np.ndarray 标签. shape = (n_samples, 1)
         :return: 随机抽取的样本
         """
 
         # 如果抽取的样本数等于样本总数，则返回全部样本
-        if self.ran_num == X.shape[0]:
+        if self.batch_size == X.shape[0]:
             return X, y
 
-        sample_list = np.random.permutation(X.shape[0])[:self.ran_num]
-        X_random = X[sample_list]
-        y_random = y[sample_list]
+        sample_index = np.random.randint(0, X.shape[0], self.batch_size)
+        X_random = X[sample_index]
+        y_random = y[sample_index]
 
         return X_random, y_random
