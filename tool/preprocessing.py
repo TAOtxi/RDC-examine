@@ -44,7 +44,7 @@ class Preprocessing:
     def LabelEncoder(self, columns):
         """
         :description: label encoding
-        :param columns: int or list. 要转换的列的序号
+        :param columns: list. 要转换的列的序号
         :return: None
         """
 
@@ -57,7 +57,7 @@ class Preprocessing:
     def ZeroOneEncoder(self, columns):
         """
         :description: one-hot encoding
-        :param columns: int or list. 要转换的列的序号
+        :param columns: list. 要转换的列的序号
         :return: None
         """
 

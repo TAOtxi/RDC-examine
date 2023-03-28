@@ -2,19 +2,24 @@ import numpy as np
 
 class Evaluation:
 
-    def __init__(self, X, theta, y_true):
+    def __init__(self, X, theta, y_true, threshold=None):
         """
-        :description: evaluation of model performance (MAE, MSE, RMSE, R2, precision, recall, accuracy)
+        :description: 评估模型. (MAE, MSE, RMSE, R2, precision, recall, accuracy)
         :param X: pd.DataFrame.     shape = (n_samples, n_features)
         :param theta: np.array.     shape = (n_features, 1)
         :param y_true: np.array.    shape = (n_samples, 1)
+        :param threshold: float.    分类阈值
         """
         self.y_true = y_true
-        self.y_pred = np.concatenate((np.ones((X.shape[0], 1)), X), axis=1) @ theta
+        self.y_pred = np.insert(X, 0, 1, axis=1) @ theta
         self.n_samples = y_true.shape[0]
+        self.threshold = threshold
+
+        if self.threshold is not None:
+            self.y_pred = np.where(self.y_pred > self.threshold, 1, 0)
 
     def MAE(self):
-        """"
+        """
         :description: Mean Absolute Error
         :return: MAE
         """
@@ -79,7 +84,7 @@ class Evaluation:
             分类模型的准确率
         :return: accuracy
         """
-
+        self.y_pred = np.where(self.y_pred >= self.threshold, 1, 0)
         diff = self.y_pred - self.y_true
         TP = np.sum(diff == 0)
 
