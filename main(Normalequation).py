@@ -1,9 +1,9 @@
-from Normalequation import Normalequation
+from algorithm.Normalequation import Normalequation
 import pandas as pd
 from tool.preprocessing import Preprocessing
 from tool.predict import Evaluation
 
-data = pd.read_csv('insurance.csv')
+data = pd.read_csv('datasets/insurance.csv')
 prep = Preprocessing(data.values)
 prep.zscore([0, 2])
 prep.ZeroOneEncoder([1, 4, 5])

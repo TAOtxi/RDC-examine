@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tool.preprocessing import Preprocessing
 from tool.predict import Evaluation
-from LinearRegression import MiniBGD
+from algorithm.LinearRegression import MiniBGD
 
 data = pd.read_csv('insurance.csv')
 prep = Preprocessing(data.values)
