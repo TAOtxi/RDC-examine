@@ -10,13 +10,15 @@ class Evaluation:
         :param y_true: np.array.    shape = (n_samples, 1)
         :param threshold: float.    分类阈值
         """
+        self.X = np.insert(X, 0, 1, axis=1)
+        self.theta = theta
         self.y_true = y_true
-        self.y_pred = np.insert(X, 0, 1, axis=1) @ theta
+        self.y_pred = self.X @ theta
         self.n_samples = y_true.shape[0]
-        self.threshold = threshold
 
-        if self.threshold is not None:
-            self.y_pred = np.where(self.y_pred > self.threshold, 1, 0)
+        if threshold is not None:
+            self.y_pred = 1 / (1 + np.exp(-self.y_pred))
+            self.y_pred = np.where(self.y_pred >= threshold, 1, 0)
 
     def MAE(self):
         """
@@ -72,8 +74,10 @@ class Evaluation:
         :return: recall
         """
 
+        same_index = self.y_pred == self.y_true
         diff = self.y_pred - self.y_true
-        TP = np.sum(diff == 0)
+
+        TP = np.sum(self.y_true[same_index] == 1)
         FN = np.sum(diff == -1)
 
         return TP / (TP + FN)
@@ -84,11 +88,11 @@ class Evaluation:
             分类模型的准确率
         :return: accuracy
         """
-        self.y_pred = np.where(self.y_pred >= self.threshold, 1, 0)
-        diff = self.y_pred - self.y_true
-        TP = np.sum(diff == 0)
 
-        return TP / self.n_samples
+        diff = self.y_pred - self.y_true
+        true = np.sum(diff == 0)
+
+        return true / self.n_samples
 
     def F1(self):
         """
@@ -97,4 +101,29 @@ class Evaluation:
         :return: F1
         """
         return 2 * self.precision() * self.recall() / (self.precision() + self.recall())
+
+    def ROC(self, threshold=0.5):
+        """
+        :description: ROC curve
+            分类模型的ROC曲线
+        :param threshold: float.
+            分类阈值
+        :return: FPR, TPR
+        """
+
+        self.y_pred = 1 / (1 + np.exp(-self.X @ self.theta))
+        self.y_pred = np.where(self.y_pred >= threshold, 1, 0)
+
+        diff = self.y_pred - self.y_true
+        same_index = self.y_pred == self.y_true
+
+        TP = np.sum(self.y_true[same_index] == 1)
+        FP = np.sum(self.y_true[diff == 1] + 1)
+        TN = np.sum(self.y_true[same_index] == 0)
+        FN = np.sum(self.y_true[diff == -1])
+
+        TPR = TP / (TP + FN)
+        FPR = FP / (FP + TN)
+
+        return FPR, TPR
 
