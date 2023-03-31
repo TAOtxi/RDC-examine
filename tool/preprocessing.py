@@ -5,14 +5,15 @@ class Preprocessing:
 
     def __init__(self, data):
         """
-        :param data: np.ndarray. 要处理的数据集
+        :param data: np.ndarray (n_sample, n_feature) - 要处理的数据集
         """
         self.data = data
 
     def minmax(self, columns):
         """
-        :description: min-max normalization
-        :param columns: int or list. 要转换的列的序号
+        :description: 极差标准化
+        :param columns: int or list - 要转换的列的序号
+        :return: None
         """
 
         max = np.max(self.data[:, columns], axis=0)
@@ -22,8 +23,9 @@ class Preprocessing:
 
     def zscore(self, columns):
         """
-        :description: z-score normalization
-        :param columns: int or list. 要转换的列的序号
+        :description: 标准差标准化
+        :param columns: int or list - 要转换的列的序号
+        :return: None
         """
 
         mean = np.mean(self.data[:, columns], axis=0)
@@ -33,18 +35,19 @@ class Preprocessing:
 
     def maxabs(self, columns):
         """
-        :description: max absolute normalization
-        :param columns: int or list. 要转换的列的序号
+        :description: 极大值绝对值标准化
+        :param columns: int or list - 要转换的列的序号
+        :return: None
         """
 
-        max = np.max(np.abs(self.data[:, columns]), axis=0)
+        maxabs = np.max(np.abs(self.data[:, columns]), axis=0)
 
-        self.data[:, columns] = self.data[:, columns] / max
+        self.data[:, columns] = self.data[:, columns] / maxabs
 
     def LabelEncoder(self, columns):
         """
-        :description: label encoding
-        :param columns: list. 要转换的列的序号
+        :description: 序号编码
+        :param columns: list - 要转换的列的序号
         :return: None
         """
 
@@ -56,8 +59,8 @@ class Preprocessing:
 
     def ZeroOneEncoder(self, columns):
         """
-        :description: one-hot encoding
-        :param columns: list. 要转换的列的序号
+        :description: 0-1 编码
+        :param columns: list - 要转换的列的序号
         :return: None
         """
 
@@ -75,9 +78,9 @@ class Preprocessing:
     def split(self, frac=0.7, seed=None):
         """
         :description: 划分训练集和测试集
-        :param frac: float. 训练集所占比例（默认为0.7）
-        :param seed: int. 随机种子（默认为None）
-        :return: X_train, y_train, X_test, y_test
+        :param frac: float - 训练集所占比例（默认为0.7）
+        :param seed: float - 随机种子（默认为None）
+        :return: np.ndarray * 4 - 划分好的训练集X_train, 训练集标签y_train, 测试集X_test, 测试集标签y_test
         """
 
         n_samples = self.data.shape[0]

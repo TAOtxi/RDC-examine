@@ -21,18 +21,17 @@ class LogisticRegression:
     def sigmoid(self, z):
         """
         :description: sigmoid函数
-        :param z: np.ndarray. shape = (batch_size, 1)
-            z = X @ theta.
-        :return: np.ndarray.
+        :param z: np.ndarray (n_sample, 1) - X @ theta
+        :return: np.ndarray (n_sample, 1) - 预测值
         """
         return 1 / (1 + np.exp(-z))
 
     def lossfunc(self, X, y):
         """
         :description: 计算损失函数的梯度
-        :param X: np.ndarray 特征矩阵. shape = (batch_size, n_features)
-        :param y: np.ndarray 标签. shape = (batch_size, 1)
-        :return: 损失函数的梯度
+        :param X: np.ndarray (batch_size, n_features) - 特征矩阵.
+        :param y: np.ndarray (batch_size, 1) - 标签.
+        :return: np.ndarray (n_feature, 1) - 损失函数的梯度
         """
         sig = self.sigmoid(X @ self.theta)
         self.loss.append((-y.T @ np.log(sig) - (1 - y).T @ np.log(1 - sig) + self.theta.T @ self.theta)[0][0] / self.batch_size)
@@ -43,9 +42,9 @@ class LogisticRegression:
     def fit(self, X, y, batch_size=None):
         """
         :description: 拟合模型
-        :param X: np.ndarray 特征矩阵. shape = (n_samples, n_features)
-        :param y: np.ndarray 标签. shape = (n_samples, 1)
-        :param batch_size: int 随机抽取的样本数（默认为全部）
+        :param X: np.ndarray (n_sample, n_feature) - 特征矩阵.
+        :param y: np.ndarray (n_sample, 1) - 标签.
+        :param batch_size: int - 小批量梯度下降随机抽取的样本数
         :return: None
         """
 
@@ -71,9 +70,9 @@ class LogisticRegression:
     def random(self, X, y):
         """
         :description: 随机抽取样本
-        :param X: np.ndarray 特征矩阵. shape = (n_samples, n_features)
-        :param y: np.ndarray 标签. shape = (n_samples, 1)
-        :return: 随机抽取的样本
+        :param X: np.ndarray (n_sample, n_feature) - 特征矩阵.
+        :param y: np.ndarray (n_sample, 1) - 标签.
+        :return: np.ndarray - 随机抽取的样本
         """
 
         # 如果抽取的样本数等于样本总数，则返回全部样本

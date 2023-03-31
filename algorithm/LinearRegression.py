@@ -21,9 +21,9 @@ class MiniBGD:
 
     def lossfunc(self, X, y):
         """
-        :param X: np.ndarray 特征矩阵. shape = (batch_size, n_features)
-        :param y: np.ndarray 标签. shape = (batch_size, 1)
-        :return: 损失函数的梯度
+        :param X: np.ndarray (batch_size, n_features) 特征矩阵
+        :param y: np.ndarray (batch_size, 1) - 标签
+        :return: np.ndarray (n_features, 1) - 损失函数的梯度
         """
 
         diff = X @ self.theta - y
@@ -33,9 +33,9 @@ class MiniBGD:
 
     def fit(self, X, y, batch_size=None):
         """
-        :param X: np.ndarray 特征矩阵. shape = (n_samples, n_features)
-        :param y: np.ndarray 标签. shape = (n_samples, 1)
-        :param batch_size: int 随机抽取的样本数（默认为全部）
+        :param X: np.ndarray (n_samples, n_features) - 特征矩阵
+        :param y: np.ndarray (n_samples, 1) - 标签
+        :param batch_size: int - 小批量梯度下降随机抽取的样本数(默认为全部样本)
         :return: None
         """
 
@@ -60,9 +60,9 @@ class MiniBGD:
 
     def random(self, X, y):
         """
-        :param X: np.ndarray 特征矩阵. shape = (n_samples, n_features)
-        :param y: np.ndarray 标签. shape = (n_samples, 1)
-        :return: 随机抽取的样本
+        :param X: np.ndarray (n_samples, n_features) - 特征矩阵
+        :param y: np.ndarray (n_samples, 1) - 标签
+        :return: np.ndarray (batch_size, n_features) - 随机抽取的特征矩阵
         """
 
         # 如果抽取的样本数等于样本总数，则返回全部样本

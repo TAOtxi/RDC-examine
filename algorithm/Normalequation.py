@@ -4,15 +4,15 @@ class Normalequation:
 
     def __init__(self, beta=1.0):
         """
-        :param beta: float 正则化系数
+        :param beta: float - 正则化系数
         """
         self.theta = None
         self.beta = beta
 
     def fit(self, X, y):
         """
-        :param X: np.ndarray 特征矩阵. shape = (n_samples, n_features)
-        :param y: np.ndarray 标签. shape = (n_samples, 1)
+        :param X: np.ndarray (n_samples, n_features) - 特征矩阵
+        :param y: np.ndarray (n_samples, 1) - 标签
         :return: None
         """
         X = np.insert(X, 0, 1, axis=1)

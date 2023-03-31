@@ -4,11 +4,11 @@ class Evaluation:
 
     def __init__(self, X, theta, y_true, threshold=None):
         """
-        :description: 评估模型. (MAE, MSE, RMSE, R2, precision, recall, accuracy)
-        :param X: pd.DataFrame.     shape = (n_samples, n_features)
-        :param theta: np.array.     shape = (n_features, 1)
-        :param y_true: np.array.    shape = (n_samples, 1)
-        :param threshold: float.    分类阈值
+        :description: 评估模型. (MAE, MSE, RMSE, R2, precision, recall, accuracy, F1, ROC)
+        :param X: np.ndarray (n_sample, n_feature) - 特征矩阵.
+        :param theta: np.ndarray (n_feature, 1) - 模型参数.
+        :param y_true: np.ndarray (n_sample, 1) - 真实标签.
+        :param threshold: float - 分类模型的阈值
         """
         self.X = np.insert(X, 0, 1, axis=1)
         self.theta = theta
@@ -22,32 +22,32 @@ class Evaluation:
 
     def MAE(self):
         """
-        :description: Mean Absolute Error
-        :return: MAE
+        :description: 求平均绝对误差
+        :return: float - 平均绝对误差
         """
         return np.mean(np.abs(self.y_pred - self.y_true)) / self.n_samples
 
     def MSE(self):
         """
-        :description: Mean Squared Error
-        :return: MSE
+        :description: 求均方误差
+        :return: float - 均方误差
         """
         diff = self.y_pred - self.y_true
 
-        # diff.T @ diff.shape ==> (1, 1)
+        # diff.T @ diff.shape == (1, 1)
         return (diff.T @ diff / self.n_samples)[0][0]
 
     def RMSE(self):
         """
-        :description: Root Mean Squared
-        :return: RMSE
+        :description: 求均方根误差
+        :return: float - 均方根误差
         """
         return np.sqrt(self.MSE())
 
     def R2(self):
         """
-        :description: R2 score (coefficient of determination)
-        :return: R2
+        :description: 求模型的决定系数
+        :return: float - 决定系数
         """
         y_mean = np.mean(self.y_true)
         diff_true = self.y_pred - self.y_true
@@ -56,9 +56,8 @@ class Evaluation:
 
     def precision(self):
         """
-        :description: precision score TP / (TP + FP)
-            分类模型的精确率
-        :return: precision
+        :description: 分类求模型的精确率 TP / (TP + FP)
+        :return: float - 精确率
         """
 
         diff = self.y_pred - self.y_true
@@ -69,9 +68,8 @@ class Evaluation:
 
     def recall(self):
         """
-        :description: recall score TP / (TP + FN)
-            分类模型的召回率
-        :return: recall
+        :description: 分类模型的召回率 TP / (TP + FN)
+        :return: float - 召回率
         """
 
         same_index = self.y_pred == self.y_true
@@ -84,9 +82,8 @@ class Evaluation:
 
     def accuracy(self):
         """
-        :description: precision score (TP+TN)/(TP+TN+FP+FN)
-            分类模型的准确率
-        :return: accuracy
+        :description: 求分类模型的准确率 (TP + TN) / (TP + TN + FP + FN)
+        :return: float - 准确率
         """
 
         diff = self.y_pred - self.y_true
@@ -96,19 +93,16 @@ class Evaluation:
 
     def F1(self):
         """
-        :description: F1 score 2 * precision * recall / (precision + recall)
-            分类模型的F1值
-        :return: F1
+        :description: 求分类模型的F1值   2 * precision * recall / (precision + recall)
+        :return: float - F1值
         """
         return 2 * self.precision() * self.recall() / (self.precision() + self.recall())
 
     def ROC(self, threshold=0.5):
         """
-        :description: ROC curve
-            分类模型的ROC曲线
-        :param threshold: float.
-            分类阈值
-        :return: FPR, TPR
+        :description: 分类模型的ROC曲线
+        :param threshold: float - 阈值
+        :return: np.ndarray - 此阈值下ROC曲线的横纵坐标TPR, FPR
         """
 
         self.y_pred = 1 / (1 + np.exp(-self.X @ self.theta))
