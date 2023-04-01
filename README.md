@@ -20,7 +20,6 @@
 或许还要感谢之前的脑抽行为，一开始的提交里，数据处理的部分都是基于
 DataFrame类型运算，之后我突然发现了这个毛病，经过好些时间改错后换成了基于array类型
 运算。不过在遍历学习率的时候，程序运算时间慢了超多。找了几天问题后，
-才知道是这个类型的不同。基于DataFrame那会儿，将Dataframe转成array时
-里面的元素类型是np.float64, 而df.values返回的array类型里是float型。。。
+才知道是这个类型的不同。基于DataFrame那会儿，将Series转成array时，Series.values返回的数组元素类型是np.float64, 而np.array返回的array类型里是float型。。。
 有趣的是，当时我问bing的ai为什么np.float64运算那么快，它说np.float64运算是上古黑科技，
 哈哈。其它的...也没啥好讲了。。。
