@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Evaluation:
 
     def __init__(self, X, theta, y_true, threshold=None):
@@ -10,15 +11,17 @@ class Evaluation:
         :param y_true: np.ndarray (n_sample, 1) - 真实标签.
         :param threshold: float - 分类模型的阈值
         """
-        self.X = np.insert(X, 0, 1, axis=1)
-        self.theta = theta
+
         self.y_true = y_true
-        self.y_pred = self.X @ theta
         self.n_samples = y_true.shape[0]
+        self.threshold = threshold
+        y = np.insert(X, 0, 1, axis=1) @ theta
+        self.sigmoid = 1 / (1 + np.exp(-y))
 
         if threshold is not None:
-            self.y_pred = 1 / (1 + np.exp(-self.y_pred))
-            self.y_pred = np.where(self.y_pred >= threshold, 1, 0)
+            self.y_pred = np.where(self.sigmoid >= threshold, 1, 0)
+        else:
+            self.y_pred = y
 
     def MAE(self):
         """
@@ -54,11 +57,17 @@ class Evaluation:
         diff_mean = self.y_pred - y_mean
         return 1 - ((diff_true.T @ diff_true) / (diff_mean.T @ diff_mean))[0][0]
 
-    def precision(self):
+    def precision(self, threshold=0.5):
         """
         :description: 分类求模型的精确率 TP / (TP + FP)
+        :param threshold: float - 分类模型的阈值
         :return: float - 精确率
         """
+
+        if self.threshold is None:
+            self.threshold = threshold
+
+        self.y_pred = np.where(self.sigmoid >= self.threshold, 1, 0)
 
         diff = self.y_pred - self.y_true
         TP = np.sum(diff == 0)
@@ -66,11 +75,17 @@ class Evaluation:
 
         return TP / (TP + FP)
 
-    def recall(self):
+    def recall(self, threshold=0.5):
         """
         :description: 分类模型的召回率 TP / (TP + FN)
+        :param threshold: float - 分类模型的阈值
         :return: float - 召回率
         """
+
+        if self.threshold is None:
+            self.threshold = threshold
+
+        self.y_pred = np.where(self.sigmoid >= self.threshold, 1, 0)
 
         same_index = self.y_pred == self.y_true
         diff = self.y_pred - self.y_true
@@ -80,11 +95,17 @@ class Evaluation:
 
         return TP / (TP + FN)
 
-    def accuracy(self):
+    def accuracy(self, threshold=0.5):
         """
         :description: 求分类模型的准确率 (TP + TN) / (TP + TN + FP + FN)
+        :param threshold: float - 分类模型的阈值
         :return: float - 准确率
         """
+
+        if self.threshold is None:
+            self.threshold = threshold
+
+        self.y_pred = np.where(self.sigmoid >= self.threshold, 1, 0)
 
         diff = self.y_pred - self.y_true
         true = np.sum(diff == 0)
@@ -96,28 +117,33 @@ class Evaluation:
         :description: 求分类模型的F1值   2 * precision * recall / (precision + recall)
         :return: float - F1值
         """
-        return 2 * self.precision() * self.recall() / (self.precision() + self.recall())
 
-    def ROC(self, threshold=0.5):
+        precision = self.precision()
+        recall = self.recall()
+
+        return 2 * precision * recall / (precision + recall)
+
+    def ROC(self):
         """
-        :description: 分类模型的ROC曲线
-        :param threshold: float - 阈值
-        :return: np.ndarray - 此阈值下ROC曲线的横纵坐标TPR, FPR
+        :description: 绘制ROC曲线
+        :return: list - 返回ROC曲线的横纵坐标 TPR, FPR
         """
 
-        self.y_pred = 1 / (1 + np.exp(-self.X @ self.theta))
-        self.y_pred = np.where(self.y_pred >= threshold, 1, 0)
+        TPR, FPR = [], []
+        for threshold in np.linspace(0, 1, 200):
 
-        diff = self.y_pred - self.y_true
-        same_index = self.y_pred == self.y_true
+            self.y_pred = np.where(self.sigmoid >= threshold, 1, 0)
 
-        TP = np.sum(self.y_true[same_index] == 1)
-        FP = np.sum(self.y_true[diff == 1] + 1)
-        TN = np.sum(self.y_true[same_index] == 0)
-        FN = np.sum(self.y_true[diff == -1])
+            same_index = self.y_pred == self.y_true
 
-        TPR = TP / (TP + FN)
-        FPR = FP / (FP + TN)
+            TP = np.sum(self.y_true[same_index] == 1)
+            FP = np.sum(self.y_pred[~same_index] == 1)
+            TN = np.sum(self.y_true[same_index] == 0)
+            FN = np.sum(self.y_pred[~same_index] == 0)
 
-        return FPR, TPR
+            TPR.append(TP / (TP + FN))
+            FPR.append(FP / (FP + TN))
+
+        return TPR, FPR
+
 

@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 class Preprocessing:
 
@@ -13,42 +12,45 @@ class Preprocessing:
         """
         :description: 极差标准化
         :param columns: int or list - 要转换的列的序号
-        :return: None
+        :return: np.ndarray - 转换后的数据集
         """
 
         max = np.max(self.data[:, columns], axis=0)
         min = np.min(self.data[:, columns], axis=0)
 
         self.data[:, columns] = (self.data[:, columns] - min) / (max - min)
+        return self.data
 
     def zscore(self, columns):
         """
         :description: 标准差标准化
         :param columns: int or list - 要转换的列的序号
-        :return: None
+        :return: np.ndarray - 转换后的数据集
         """
 
         mean = np.mean(self.data[:, columns], axis=0)
         std = np.std(self.data[:, columns].astype(float), axis=0)
 
         self.data[:, columns] = (self.data[:, columns] - mean) / std
+        return self.data
 
     def maxabs(self, columns):
         """
         :description: 极大值绝对值标准化
         :param columns: int or list - 要转换的列的序号
-        :return: None
+        :return: np.ndarray - 转换后的数据集
         """
 
         maxabs = np.max(np.abs(self.data[:, columns]), axis=0)
 
         self.data[:, columns] = self.data[:, columns] / maxabs
+        return self.data
 
     def LabelEncoder(self, columns):
         """
         :description: 序号编码
         :param columns: list - 要转换的列的序号
-        :return: None
+        :return: np.ndarray - 转换后的数据集
         """
 
         for column in columns:
@@ -56,12 +58,14 @@ class Preprocessing:
             for index, value in enumerate(type):
                 self.data[:, column][self.data[:, column] == value] = index
 
+        return self.data
+
 
     def ZeroOneEncoder(self, columns):
         """
         :description: 0-1 编码
         :param columns: list - 要转换的列的序号
-        :return: None
+        :return: np.ndarray - 转换后的数据集
         """
 
         for column in columns:
@@ -74,6 +78,8 @@ class Preprocessing:
                 for i in type:
                     self.data = np.insert(self.data, column + 1, np.where(self.data[:, column] == i, 1, 0), axis=1)
                 self.data = np.delete(self.data, column, axis=1)
+
+        return self.data
 
     def split(self, frac=0.7, seed=None):
         """
