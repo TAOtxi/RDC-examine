@@ -57,17 +57,20 @@ class Evaluation:
         diff_mean = self.y_pred - y_mean
         return 1 - ((diff_true.T @ diff_true) / (diff_mean.T @ diff_mean))[0][0]
 
-    def precision(self, threshold=0.5):
+    def precision(self, threshold=None):
         """
         :description: 分类求模型的精确率 TP / (TP + FP)
         :param threshold: float - 分类模型的阈值
         :return: float - 精确率
         """
 
-        if self.threshold is None:
-            self.threshold = threshold
+        if threshold is None:
+            if self.threshold is None:
+                threshold = 0.5
+            else:
+                threshold = self.threshold
 
-        self.y_pred = np.where(self.sigmoid >= self.threshold, 1, 0)
+        self.y_pred = np.where(self.sigmoid >= threshold, 1, 0)
 
         diff = self.y_pred - self.y_true
         TP = np.sum(diff == 0)
@@ -75,17 +78,20 @@ class Evaluation:
 
         return TP / (TP + FP)
 
-    def recall(self, threshold=0.5):
+    def recall(self, threshold=None):
         """
         :description: 分类模型的召回率 TP / (TP + FN)
         :param threshold: float - 分类模型的阈值
         :return: float - 召回率
         """
 
-        if self.threshold is None:
-            self.threshold = threshold
+        if threshold is None:
+            if self.threshold is None:
+                threshold = 0.5
+            else:
+                threshold = self.threshold
 
-        self.y_pred = np.where(self.sigmoid >= self.threshold, 1, 0)
+        self.y_pred = np.where(self.sigmoid >= threshold, 1, 0)
 
         same_index = self.y_pred == self.y_true
         diff = self.y_pred - self.y_true
@@ -95,17 +101,21 @@ class Evaluation:
 
         return TP / (TP + FN)
 
-    def accuracy(self, threshold=0.5):
+    def accuracy(self, threshold=None):
         """
         :description: 求分类模型的准确率 (TP + TN) / (TP + TN + FP + FN)
         :param threshold: float - 分类模型的阈值
         :return: float - 准确率
         """
 
-        if self.threshold is None:
-            self.threshold = threshold
+        if threshold is None:
+            if self.threshold is None:
+                threshold = 0.5
+            else:
+                threshold = self.threshold
 
-        self.y_pred = np.where(self.sigmoid >= self.threshold, 1, 0)
+
+        self.y_pred = np.where(self.sigmoid >= threshold, 1, 0)
 
         diff = self.y_pred - self.y_true
         true = np.sum(diff == 0)
