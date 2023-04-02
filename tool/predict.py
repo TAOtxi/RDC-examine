@@ -67,9 +67,11 @@ class Evaluation:
         if threshold is None:
             if self.threshold is None:
                 threshold = 0.5
-                self.sigmoid = 1 / (1 + np.exp(-self.y_pred))
             else:
                 threshold = self.threshold
+
+        if self.sigmoid is None:
+            self.sigmoid = 1 / (1 + np.exp(-self.y_pred))
 
         self.y_pred = np.where(self.sigmoid >= threshold, 1, 0)
 
@@ -89,9 +91,11 @@ class Evaluation:
         if threshold is None:
             if self.threshold is None:
                 threshold = 0.5
-                self.sigmoid = 1 / (1 + np.exp(-self.y_pred))
             else:
                 threshold = self.threshold
+
+        if self.sigmoid is None:
+            self.sigmoid = 1 / (1 + np.exp(-self.y_pred))
 
         self.y_pred = np.where(self.sigmoid >= threshold, 1, 0)
 
@@ -113,10 +117,10 @@ class Evaluation:
         if threshold is None:
             if self.threshold is None:
                 threshold = 0.5
-                self.sigmoid = 1 / (1 + np.exp(-self.y_pred))
             else:
                 threshold = self.threshold
-
+        if self.sigmoid is None:
+            self.sigmoid = 1 / (1 + np.exp(-self.y_pred))
 
         self.y_pred = np.where(self.sigmoid >= threshold, 1, 0)
 
