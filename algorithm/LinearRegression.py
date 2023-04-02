@@ -21,6 +21,7 @@ class MiniBGD:
 
     def lossfunc(self, X, y):
         """
+        :description: 求代价，并返回损失函数的梯度
         :param X: np.ndarray (batch_size, n_features) 特征矩阵
         :param y: np.ndarray (batch_size, 1) - 标签
         :return: np.ndarray (n_features, 1) - 损失函数的梯度
@@ -33,6 +34,7 @@ class MiniBGD:
 
     def fit(self, X, y, batch_size=None):
         """
+        :description: 训练模型
         :param X: np.ndarray (n_samples, n_features) - 特征矩阵
         :param y: np.ndarray (n_samples, 1) - 标签
         :param batch_size: int - 小批量梯度下降随机抽取的样本数(默认为全部样本)
@@ -60,6 +62,7 @@ class MiniBGD:
 
     def random(self, X, y):
         """
+        :description: 从数据集中随机抽取batch_size个样本，用于小批量梯度下降
         :param X: np.ndarray (n_samples, n_features) - 特征矩阵
         :param y: np.ndarray (n_samples, 1) - 标签
         :return: np.ndarray (batch_size, n_features) - 随机抽取的特征矩阵

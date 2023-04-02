@@ -11,6 +11,7 @@ class Normalequation:
 
     def fit(self, X, y):
         """
+        :description: 略
         :param X: np.ndarray (n_samples, n_features) - 特征矩阵
         :param y: np.ndarray (n_samples, 1) - 标签
         :return: None

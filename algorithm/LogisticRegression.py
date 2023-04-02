@@ -28,7 +28,7 @@ class LogisticRegression:
 
     def lossfunc(self, X, y):
         """
-        :description: 计算损失函数的梯度
+        :description: 计算代价和返回损失函数的梯度
         :param X: np.ndarray (batch_size, n_features) - 特征矩阵.
         :param y: np.ndarray (batch_size, 1) - 标签.
         :return: np.ndarray (n_feature, 1) - 损失函数的梯度
@@ -69,7 +69,7 @@ class LogisticRegression:
 
     def random(self, X, y):
         """
-        :description: 随机抽取样本
+        :description: 从数据集中随机抽取batch_size个样本，用于小批量梯度下降
         :param X: np.ndarray (n_sample, n_feature) - 特征矩阵.
         :param y: np.ndarray (n_sample, 1) - 标签.
         :return: np.ndarray - 随机抽取的样本
