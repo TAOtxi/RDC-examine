@@ -16,9 +16,9 @@ class Evaluation:
         self.n_samples = y_true.shape[0]
         self.threshold = threshold
         y = np.insert(X, 0, 1, axis=1) @ theta
-        self.sigmoid = 1 / (1 + np.exp(-y))
 
         if threshold is not None:
+            self.sigmoid = 1 / (1 + np.exp(-y))
             self.y_pred = np.where(self.sigmoid >= threshold, 1, 0)
         else:
             self.y_pred = y
@@ -67,6 +67,7 @@ class Evaluation:
         if threshold is None:
             if self.threshold is None:
                 threshold = 0.5
+                self.sigmoid = 1 / (1 + np.exp(-self.y_pred))
             else:
                 threshold = self.threshold
 
@@ -88,6 +89,7 @@ class Evaluation:
         if threshold is None:
             if self.threshold is None:
                 threshold = 0.5
+                self.sigmoid = 1 / (1 + np.exp(-self.y_pred))
             else:
                 threshold = self.threshold
 
@@ -111,6 +113,7 @@ class Evaluation:
         if threshold is None:
             if self.threshold is None:
                 threshold = 0.5
+                self.sigmoid = 1 / (1 + np.exp(-self.y_pred))
             else:
                 threshold = self.threshold
 
@@ -138,6 +141,9 @@ class Evaluation:
         :description: 绘制ROC曲线
         :return: list - 返回ROC曲线的横纵坐标 TPR, FPR
         """
+
+        if self.threshold is None:
+            self.sigmoid = 1 / (1 + np.exp(-self.y_pred))
 
         TPR, FPR = [], []
         for threshold in np.linspace(0, 1, 200):
