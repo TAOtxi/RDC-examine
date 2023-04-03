@@ -4,6 +4,10 @@ from math import log2
 
 class DecisionTree:
 
+    def __init__(self):
+        self.tree = None
+        self.best_divide = {}
+
     def Entropy(self, data):
         """
         :description: 求当前节点下的信息熵
@@ -26,7 +30,7 @@ class DecisionTree:
     def InfoGain(self, data, feature):
         """
         :description: 求子集信息增益
-        :param data: np.ndarray (n_sample, n_feature) - 数据集
+        :param data: np.ndarray (n_sample, n_feature+1) - 数据集
         :param feature: int - 特征列索引
         :return: float - 信息增益
         """
@@ -44,6 +48,30 @@ class DecisionTree:
             IG -= (vals[val] / n_sample) * ent
 
         return IG
+
+    def Discret(self, data, columns):
+        """
+        :description: 将连续数据离散化
+        :param data: np.ndarray (n_sample, n_feature+1) - 数据集
+        :param columns: list - 要进行离散化的列索引
+        :return: np.ndarray - 离散化后的数据集
+        """
+        for i in columns:
+            sort = data[np.argsort(data[:, i])]
+            IG_max = -1
+
+            # 比较每个划分节点下的信息增益， 选出信息增益最大的划分
+            for j in range(len(data) - 1):
+                divide = (sort[j, i] + sort[j + 1, i] + 1) / 2
+                sort[:, i] = np.where(sort[:, i] > divide, 1, 0)
+                IG = self.InfoGain(data=sort, feature=i)
+
+                if IG > IG_max:
+                    IG_max = IG
+                    self.best_divide[i] = divide
+            data[:, i] = np.where(data[:, i] > self.best_divide[i], 1, 0)
+
+        return data
 
     def BestFeature(self, data):
         """
@@ -67,18 +95,20 @@ class DecisionTree:
 
     def CreateTree(self, data, columns):
         """
-        :description: 创建决策树
+        :description: 递归创建决策树
         :param data: np.ndarray (n_sample, n_feature) - 数据集
         :param columns: list - 列的名字
         :return: dict - 决策树
         """
+        categories, counts = np.unique(data[:, -1], return_counts=True)
 
+        # 返回叶节点中类别最多的类别
         if data.shape[1] <= 1:
-            return np.sort(data[:, -1])[-1]
+            return categories[np.argmax(counts)]
 
-        categories = set(data[:, -1])
+        # 正确分类，返回类别
         if len(categories) == len(data):
-            return data[0][-1]
+            return categories[0]
 
         feature = self.BestFeature(data)
         column = columns.pop(feature)
@@ -88,6 +118,7 @@ class DecisionTree:
         for val in vals:
             subdata = data[data[:, feature] == val]
             tree[column][val] = self.CreateTree(np.delete(subdata, obj=feature, axis=1), columns.copy())
+        self.tree = tree
 
         return tree
 
