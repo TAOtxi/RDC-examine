@@ -28,7 +28,7 @@ class DecisionTree:
         ent = 0.0
         n_sample = data.shape[0]
 
-        for i in categories:
+        for i in categories.keys():
             ent -= (categories[i] / n_sample) * log2(categories[i] / n_sample)
 
         return ent
@@ -49,11 +49,29 @@ class DecisionTree:
         # 信息增益Information Gain
         IG = self.Entropy(data)
 
-        for val in vals:
+        for val in vals.keys():
             ent = self.Entropy(data[data[:, feature] == val])
             IG -= (vals[val] / n_sample) * ent
 
         return IG
+
+    def InfoGainRatio(self, data, feature):
+        """
+        :description: 求子集信息增益比
+        :param data: np.ndarray (n_sample, n_feature+1) - 数据集
+        :param feature: int - 特征列索引
+        :return: float - 信息增益比
+        """
+        n_sample = data.shape[0]
+        vals, counts = np.unique(data[:, feature], return_counts=True)
+        vals = dict(zip(vals, counts))
+
+        # 特征熵feature entropy
+        FeatureEnt = 0.0
+        for val in vals.keys():
+            FeatureEnt -= (vals[val] / n_sample) * log2(vals[val] / n_sample)
+
+        return self.InfoGain(data, feature) / FeatureEnt
 
     def Discret(self, columns, data=None):
         """
@@ -97,7 +115,7 @@ class DecisionTree:
 
         for i in range(n_feature):
 
-            IG = self.InfoGain(data, i)
+            IG = self.InfoGainRatio(data, i)
             if IG > max_IG:
                 feature = i
                 max_IG = IG
