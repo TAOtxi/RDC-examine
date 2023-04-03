@@ -4,8 +4,14 @@ from math import log2
 
 class DecisionTree:
 
-    def __init__(self):
+    def __init__(self, data=None, FeatureNames=None):
+        """
+        :param data: (n_sample, n_feature+1) - 数据集
+        :param FeatureNames: list -  特征名字
+        """
         self.tree = None
+        self.data = data
+        self.FeatureNames = FeatureNames
         self.best_divide = {}
 
     def Entropy(self, data):
@@ -93,13 +99,23 @@ class DecisionTree:
 
         return feature
 
-    def CreateTree(self, data, columns):
+    def CreateTree(self, data=None, FeatureNames=None):
         """
         :description: 递归创建决策树
         :param data: np.ndarray (n_sample, n_feature) - 数据集
-        :param columns: list - 列的名字
+        :param FeatureNames: list - 特征名字
         :return: dict - 决策树
         """
+        if data is None:
+            if self.data is None:
+                raise '空数据集...'
+            data = self.data
+
+        if FeatureNames is None:
+            if self.FeatureNames is None:
+                raise '空名字...'
+            FeatureNames = self.FeatureNames.copy()
+
         categories, counts = np.unique(data[:, -1], return_counts=True)
 
         # 返回叶节点中类别最多的类别
@@ -111,16 +127,45 @@ class DecisionTree:
             return categories[0]
 
         feature = self.BestFeature(data)
-        column = columns.pop(feature)
-        tree = {column: {}}
+        name = FeatureNames.pop(feature)
+        tree = {name: {}}
         vals = set(data[:, feature])
 
         for val in vals:
             subdata = data[data[:, feature] == val]
-            tree[column][val] = self.CreateTree(np.delete(subdata, obj=feature, axis=1), columns.copy())
+            tree[name][val] = self.CreateTree(np.delete(subdata, obj=feature, axis=1), FeatureNames.copy())
         self.tree = tree
 
         return tree
+
+    def classify(self, data, tree=None, FeatureNames=None):
+        """
+        :description: 通过已经生成的决策树对测试集进行分类
+        :param data: np.ndarray (n_sample, n_feature+1) - 测试集
+        :param tree: dict - 决策树
+        :param FeatureNames: list - 特征名字
+        :return: list - 分类结果
+        """
+        if tree is None:
+            tree = self.tree
+
+        if FeatureNames is None:
+            FeatureNames = self.FeatureNames
+
+        out = []
+        for sample in data:
+            feature = list(tree.keys())[0]
+            value = sample[FeatureNames.index(feature)]
+            Node = tree[feature][value]
+
+            while isinstance(Node, dict):
+                feature = list(Node.keys())[0]
+                value = sample[FeatureNames.index(feature)]
+                Node = Node[feature][value]
+
+            out.append(Node)
+
+        return out
 
 if __name__ == '__main__':
 
@@ -142,10 +187,10 @@ if __name__ == '__main__':
 
     labels = ['年龄', '有工作', '有自己的房子', '信贷情况']
     dataSet = np.array(dataSet)
-    dataSet[:, -1] = np.where(dataSet[:, -1] == 'yes', 1, 0)
 
-    Tree = DecisionTree()
-    tree = Tree.CreateTree(dataSet, labels)
+    Tree = DecisionTree(dataSet, labels)
+    tree = Tree.CreateTree()
     print(tree)
-
+    classify = np.array(Tree.classify(dataSet))
+    print(classify == dataSet[:, -1])
 
