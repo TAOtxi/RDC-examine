@@ -55,13 +55,18 @@ class DecisionTree:
 
         return IG
 
-    def Discret(self, data, columns):
+    def Discret(self, columns, data=None):
         """
         :description: 将连续数据离散化
-        :param data: np.ndarray (n_sample, n_feature+1) - 数据集
         :param columns: list - 要进行离散化的列索引
+        :param data: np.ndarray (n_sample, n_feature+1) - 数据集
         :return: np.ndarray - 离散化后的数据集
         """
+        if data is None:
+            if self.data is None:
+                raise '空数据集...'
+            data = self.data
+
         for i in columns:
             sort = data[np.argsort(data[:, i])]
             IG_max = -1
@@ -76,7 +81,7 @@ class DecisionTree:
                     IG_max = IG
                     self.best_divide[i] = divide
             data[:, i] = np.where(data[:, i] > self.best_divide[i], 1, 0)
-
+        self.data = data
         return data
 
     def BestFeature(self, data):
@@ -156,12 +161,15 @@ class DecisionTree:
         for sample in data:
             feature = list(tree.keys())[0]
             value = sample[FeatureNames.index(feature)]
-            Node = tree[feature][value]
+            Node = tree[feature].get(value)
 
             while isinstance(Node, dict):
                 feature = list(Node.keys())[0]
                 value = sample[FeatureNames.index(feature)]
-                Node = Node[feature][value]
+                if Node[feature].get(value) is None:
+                    Node = list(Node[feature].values())[0]
+                else:
+                    Node = Node[feature].get(value)
 
             out.append(Node)
 
