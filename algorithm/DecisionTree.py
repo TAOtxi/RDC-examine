@@ -4,14 +4,16 @@ from math import log2
 
 class DecisionTree:
 
-    def __init__(self, data=None, FeatureNames=None):
+    def __init__(self, data=None, FeatureNames=None, minRatio=0.01):
         """
         :param data: (n_sample, n_feature+1) - 数据集
         :param FeatureNames: list -  特征名字
+        :param minRatio: float - 信息增益比的最小值
         """
         self.tree = None
         self.data = data
         self.FeatureNames = FeatureNames
+        self.minRatio = minRatio
         self.best_divide = {}
 
     def Entropy(self, data):
@@ -23,13 +25,12 @@ class DecisionTree:
 
         # 统计标签数量
         categories, counts = np.unique(data[:, -1], return_counts=True)
-        categories = dict(zip(categories, counts))
 
         ent = 0.0
         n_sample = data.shape[0]
 
-        for i in categories.keys():
-            ent -= (categories[i] / n_sample) * log2(categories[i] / n_sample)
+        for count in counts:
+            ent -= (count / n_sample) * log2(count / n_sample)
 
         return ent
 
@@ -62,14 +63,12 @@ class DecisionTree:
         :param feature: int - 特征列索引
         :return: float - 信息增益比
         """
-        n_sample = data.shape[0]
-        vals, counts = np.unique(data[:, feature], return_counts=True)
-        vals = dict(zip(vals, counts))
 
         # 特征熵feature entropy
-        FeatureEnt = 0.0
-        for val in vals.keys():
-            FeatureEnt -= (vals[val] / n_sample) * log2(vals[val] / n_sample)
+        FeatureEnt = self.Entropy(data[:, feature].reshape(-1, 1))
+
+        if FeatureEnt == 0:
+            return None
 
         return self.InfoGain(data, feature) / FeatureEnt
 
@@ -81,8 +80,6 @@ class DecisionTree:
         :return: np.ndarray - 离散化后的数据集
         """
         if data is None:
-            if self.data is None:
-                raise '空数据集...'
             data = self.data
 
         for i in columns:
@@ -110,15 +107,16 @@ class DecisionTree:
         """
 
         n_feature = data.shape[1] - 1
-        feature = 0
-        max_IG = -1
+        feature = -1
+        max_IGR = -1
 
         for i in range(n_feature):
 
-            IG = self.InfoGainRatio(data, i)
-            if IG > max_IG:
+            IGR = self.InfoGainRatio(data, i)
+
+            if IGR is not None and IGR > max_IGR and IGR > self.minRatio:
                 feature = i
-                max_IG = IG
+                max_IGR = IGR
 
         return feature
 
@@ -130,13 +128,9 @@ class DecisionTree:
         :return: dict - 决策树
         """
         if data is None:
-            if self.data is None:
-                raise '空数据集...'
             data = self.data
 
         if FeatureNames is None:
-            if self.FeatureNames is None:
-                raise '空名字...'
             FeatureNames = self.FeatureNames.copy()
 
         categories, counts = np.unique(data[:, -1], return_counts=True)
@@ -150,24 +144,32 @@ class DecisionTree:
             return categories[0]
 
         feature = self.BestFeature(data)
+
+        # 返回叶节点中类别最多的类别
+        if feature == -1:
+            return categories[np.argmax(counts)]
+
         name = FeatureNames.pop(feature)
         tree = {name: {}}
         vals = set(data[:, feature])
 
         for val in vals:
             subdata = data[data[:, feature] == val]
+
+            if subdata.size == 0:
+                continue
             tree[name][val] = self.CreateTree(np.delete(subdata, obj=feature, axis=1), FeatureNames.copy())
         self.tree = tree
 
         return tree
 
-    def classify(self, data, tree=None, FeatureNames=None):
+    def predict(self, data, tree=None, FeatureNames=None):
         """
         :description: 通过已经生成的决策树对测试集进行分类
         :param data: np.ndarray (n_sample, n_feature+1) - 测试集
         :param tree: dict - 决策树
         :param FeatureNames: list - 特征名字
-        :return: list - 分类结果
+        :return: np.array - 分类结果
         """
         if tree is None:
             tree = self.tree
@@ -175,7 +177,7 @@ class DecisionTree:
         if FeatureNames is None:
             FeatureNames = self.FeatureNames
 
-        out = []
+        pred = []
         for sample in data:
             feature = list(tree.keys())[0]
             value = sample[FeatureNames.index(feature)]
@@ -184,14 +186,48 @@ class DecisionTree:
             while isinstance(Node, dict):
                 feature = list(Node.keys())[0]
                 value = sample[FeatureNames.index(feature)]
+
                 if Node[feature].get(value) is None:
                     Node = list(Node[feature].values())[0]
                 else:
                     Node = Node[feature].get(value)
 
-            out.append(Node)
+            pred.append(Node)
 
-        return out
+        return np.array(pred)
+
+    def accuracy(self, test):
+        """
+        :description: 计算准确率
+        :param test: np.ndarray (n_sample, n_feature+1) - 测试集
+        :return: float - 准确率
+        """
+        pred = self.predict(test)
+
+        return np.sum(pred == test[:, -1]) / len(pred)
+
+    # 后剪枝
+    def PostPruning(self, data=None, tree=None, FeatureNames=None):
+        """
+        :description: 后剪枝
+        :param data: np.ndarray (n_sample, n_feature+1) - 测试集
+        :param tree: dict - 决策树
+        :param FeatureNames: list - 特征名字
+        :return: dict - 剪枝后的决策树
+        """
+        if data is None:
+            data = self.data
+
+        if tree is None:
+            tree = self.tree
+
+        for Node in tree.values():
+            for value in Node.values():
+                if not isinstance(value, dict):
+                    tree = self.PostPruning(data, value)
+
+
+
 
 if __name__ == '__main__':
 
