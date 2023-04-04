@@ -88,7 +88,7 @@ class DecisionTree:
 
             # 比较每个划分节点下的信息增益， 选出信息增益最大的划分
             for j in range(len(data) - 1):
-                divide = (sort[j, i] + sort[j + 1, i] + 1) / 2
+                divide = (sort[j, i] + sort[j + 1, i]) / 2
                 sort[:, i] = np.where(sort[:, i] > divide, 1, 0)
                 IG = self.InfoGain(data=sort, feature=i)
 
@@ -120,7 +120,7 @@ class DecisionTree:
 
         return feature
 
-    def CreateTree(self, data=None, FeatureNames=None):
+    def fit(self, data=None, FeatureNames=None):
         """
         :description: 递归创建决策树
         :param data: np.ndarray (n_sample, n_feature) - 数据集
@@ -158,7 +158,7 @@ class DecisionTree:
 
             if subdata.size == 0:
                 continue
-            tree[name][val] = self.CreateTree(np.delete(subdata, obj=feature, axis=1), FeatureNames.copy())
+            tree[name][val] = self.fit(np.delete(subdata, obj=feature, axis=1), FeatureNames.copy())
         self.tree = tree
 
         return tree
@@ -196,63 +196,73 @@ class DecisionTree:
 
         return np.array(pred)
 
-    def accuracy(self, test):
+    def accuracy(self, test, tree=None):
         """
         :description: 计算准确率
         :param test: np.ndarray (n_sample, n_feature+1) - 测试集
+        :param tree: dict - 决策树
         :return: float - 准确率
         """
-        pred = self.predict(test)
+        if tree is None:
+            tree = self.tree
+
+        # 判断空数据集
+        if test.size == 0:
+            return 0
+
+        pred = self.predict(test, tree)
 
         return np.sum(pred == test[:, -1]) / len(pred)
 
     # 后剪枝
-    def PostPruning(self, data=None, tree=None, FeatureNames=None):
+    def PostPruning(self, train, test, tree=None, FeatureNames=None):
         """
-        :description: 后剪枝
-        :param data: np.ndarray (n_sample, n_feature+1) - 测试集
+        :description: 递归进行后剪枝
+        :param train: np.ndarray (n_sample, n_feature+1) - 训练集
+        :param test: np.ndarray (n_sample, n_feature+1) - 测试集
         :param tree: dict - 决策树
         :param FeatureNames: list - 特征名字
         :return: dict - 剪枝后的决策树
         """
-        if data is None:
-            data = self.data
 
         if tree is None:
             tree = self.tree
 
-        for Node in tree.values():
-            for value in Node.values():
-                if not isinstance(value, dict):
-                    tree = self.PostPruning(data, value)
+        if FeatureNames is None:
+            FeatureNames = self.FeatureNames
 
+        feature = list(tree.keys())[0]
+        column = FeatureNames.index(feature)
 
+        for val in tree[feature].keys():
+            subtree = tree[feature][val]
 
+            if isinstance(subtree, dict):
+                subtrain = train[train[:, column] == val]
+                subtest = test[test[:, column] == val]
 
-if __name__ == '__main__':
+                # 递归调用self.PostPruning对子树进行后剪枝
+                Node = self.PostPruning(subtrain, subtest, subtree, FeatureNames)
 
-    dataSet = [[0, 0, 0, 0, 'no'],
-               [0, 0, 0, 1, 'no'],
-               [0, 1, 0, 1, 'yes'],
-               [0, 1, 1, 0, 'yes'],
-               [0, 0, 0, 0, 'no'],
-               [1, 0, 0, 0, 'no'],
-               [1, 0, 0, 1, 'no'],
-               [1, 1, 1, 1, 'yes'],
-               [1, 0, 1, 2, 'yes'],
-               [1, 0, 1, 2, 'yes'],
-               [2, 0, 1, 2, 'yes'],
-               [2, 0, 1, 1, 'yes'],
-               [2, 1, 0, 1, 'yes'],
-               [2, 1, 0, 2, 'yes'],
-               [2, 0, 0, 0, 'no']]
+            # 到达叶子节点时，进行剪枝操作
+            if test.size != 0 and not isinstance(subtree, dict):
 
-    labels = ['年龄', '有工作', '有自己的房子', '信贷情况']
-    dataSet = np.array(dataSet)
+                # 备份子树节点
+                backup = tree[feature][val]
 
-    Tree = DecisionTree(dataSet, labels)
-    tree = Tree.CreateTree()
-    print(tree)
-    classify = np.array(Tree.classify(dataSet))
-    print(classify == dataSet[:, -1])
+                # 剪枝前
+                before = self.accuracy(test, tree)
 
+                # 进行剪枝操作，将当前节点替换为叶子节点
+                categories, counts = np.unique(train[:, -1], return_counts=True)
+                label = categories[np.argmax(counts)]
+                tree[feature][val] = label
+
+                # 剪枝后
+                after = self.accuracy(test, tree)
+
+                # 如果剪枝后的准确率变差，则还原子树节点
+                if before > after:
+                    tree[feature][val] = backup
+
+        return tree
